@@ -17,25 +17,30 @@ class CountriesViewModel {
     @MainActor
     func fetchCountries() async {
         guard countries.isEmpty else { return }
-        
-        let urlString = "https://restcountries.com/v3.1/all?fields=name,cca3,capital,region,subregion,population,area,flags,languages,currencies"
-        
+         
+        // Live public mirror endpoint containing the full country dataset array
+        let urlString = "https://raw.githubusercontent.com/mledoze/countries/master/countries.json"
+         
         guard let url = URL(string: urlString) else { return }
-        
+         
         self.isLoading = true
-        
+         
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
-            
+             
             if let http = response as? HTTPURLResponse, http.statusCode != 200 {
                 throw URLError(.badServerResponse)
             }
+             
+            let decoder = JSONDecoder()
+            let decoded = try decoder.decode([Country].self, from: data)
             
-            let decoded = try JSONDecoder().decode([Country].self, from: data)
+            // Sort alphabetically and update state
             self.countries = decoded.sorted { $0.name.common < $1.name.common }
             self.isLoading = false
-            
+             
         } catch {
+            print("FULL DECODING ERROR: \(error)")
             self.errorMessage = error.localizedDescription
             self.hasError = true
             self.isLoading = false

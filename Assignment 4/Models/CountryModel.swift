@@ -32,4 +32,5 @@ struct Flags : Codable {
 
 struct Currency : Codable {
     var name : String?
+    var symbol : String?
 }
