@@ -15,5 +15,5 @@ struct CountryDetailView: View {
 
 
 #Preview {
-    test()
+    
 }
