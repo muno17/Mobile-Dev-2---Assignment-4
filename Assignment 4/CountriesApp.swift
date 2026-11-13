@@ -1,9 +1,21 @@
 import SwiftUI
 
-@main struct MyApp: App {
+@main
+struct CountriesApp: App {
+    
+    @State var viewModel = CountriesViewModel()
+    @AppStorage("hasSeenIntro") var hasSeenIntro : Bool = false
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if hasSeenIntro {
+                CountryGridView()
+                    .environment(viewModel)
+            } else {
+                IntroView {
+                    hasSeenIntro = true
+                }
+            }
         }
     }
 }

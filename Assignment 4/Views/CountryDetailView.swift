@@ -13,6 +13,7 @@ struct CountryDetailView: View {
     }
 }
 
+
 #Preview {
-    CountryDetailView()
+    test()
 }
