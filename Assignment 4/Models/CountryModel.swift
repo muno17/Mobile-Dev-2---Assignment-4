@@ -15,7 +15,7 @@ struct Country : Codable, Identifiable {
     var capital : [String]?
     var region : String?
     var subregion : String?
-    var population : Int?      // not in the country file; filled in from the World Bank
+    var population : Int?
     var area : Double?
     var landlocked : Bool?
     var unMember : Bool?
@@ -38,7 +38,6 @@ struct Currency : Codable {
     var symbol : String?
 }
 
-// MARK: - World Bank population response
 // The API returns a two-item array: [paging info, [rows]]
 
 struct PopulationResponse : Decodable {
