@@ -6,10 +6,16 @@
 //
 
 import SwiftUI
+import MapKit
 
 struct CountryDetailView: View {
     
     var country : Country
+    
+    var capitalText : String {
+        let names = country.capital ?? []
+        return names.isEmpty ? "None" : names.joined(separator: ", ")
+    }
     
     var languageText : String {
         let names = country.languages?.values.sorted() ?? []
@@ -21,10 +27,15 @@ struct CountryDetailView: View {
         return names.isEmpty ? "Unknown" : names.sorted().joined(separator: ", ")
     }
     
+    var coordinate : CLLocationCoordinate2D? {
+        guard let latlng = country.latlng, latlng.count == 2 else { return nil }
+        return CLLocationCoordinate2D(latitude: latlng[0], longitude: latlng[1])
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 15) {
-                AsyncImage(url: URL(string: country.flags?.png ?? "")) { phase in
+                AsyncImage(url: country.flagURL(width: 640)) { phase in
                     if let image = phase.image {
                         image.resizable().scaledToFit()
                     } else if phase.error != nil {
@@ -47,15 +58,38 @@ struct CountryDetailView: View {
                         .foregroundStyle(.secondary)
                 }
                 
-                info("Capital", country.capital?.joined(separator: ", ") ?? "None")
-                info("Region", country.region ?? "Unknown")
-                info("Subregion", country.subregion ?? "Unknown")
-                info("Population", country.population.map { $0.formatted() } ?? "Unknown")
-                info("Area", country.area.map { "\($0.formatted()) km²" } ?? "Unknown")
-                info("Languages", languageText)
-                info("Currencies", currencyText)
+                VStack(alignment: .leading, spacing: 15) {
+                    info("Capital", capitalText)
+                    info("Region", nonEmpty(country.region))
+                    info("Subregion", nonEmpty(country.subregion))
+                    info("Area", country.area.map { "\($0.formatted()) km²" } ?? "Unknown")
+                    info("Population", country.population.map { $0.formatted() } ?? "Unknown")
+                    info("Languages", languageText)
+                    info("Currencies", currencyText)
+                    info("UN Member", yesNo(country.unMember))
+                    info("Landlocked", yesNo(country.landlocked))
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                
+                if let coordinate = coordinate {
+                    Text("Location")
+                        .font(.headline)
+                    
+                    Map(initialPosition: .region(MKCoordinateRegion(
+                        center: coordinate,
+                        span: MKCoordinateSpan(latitudeDelta: 30, longitudeDelta: 30)
+                    ))) {
+                        Marker(country.name.common, coordinate: coordinate)
+                    }
+                    .frame(height: 250)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
             }
             .padding(.horizontal)
+            .padding(.bottom)
         }
         .navigationTitle("Country Info")
         .navigationBarTitleDisplayMode(.inline)
@@ -69,11 +103,22 @@ struct CountryDetailView: View {
                 .font(.subheadline)
         }
     }
+    
+    func nonEmpty(_ text: String?) -> String {
+        if let text, !text.isEmpty { return text }
+        return "Unknown"
+    }
+    
+    func yesNo(_ value: Bool?) -> String {
+        guard let value else { return "Unknown" }
+        return value ? "Yes" : "No"
+    }
 }
 
 #Preview {
     CountryDetailView(country: Country(
         cca3: "COL",
+        cca2: "CO",
         name: CountryName(
             common: "Colombia",
             official: "Republic of Colombia"
@@ -81,10 +126,12 @@ struct CountryDetailView: View {
         capital: ["Bogotá"],
         region: "Americas",
         subregion: "South America",
-        population: 50882884,
+        population: 50_822_822,
         area: 1141748.0,
-        flags: Flags(png: "https://flagcdn.com/w320/co.png"),
+        landlocked: false,
+        unMember: true,
+        latlng: [4, -72],
         languages: ["spa": "Spanish"],
-        currencies: ["COP": Currency(name: "Colombian peso")]
+        currencies: ["COP": Currency(name: "Colombian peso", symbol: "$")]
     ))
 }

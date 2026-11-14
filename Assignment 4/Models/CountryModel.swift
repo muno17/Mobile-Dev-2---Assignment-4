@@ -10,15 +10,22 @@ import Foundation
 struct Country : Codable, Identifiable {
     var id : String { cca3 }
     var cca3 : String
+    var cca2 : String
     var name : CountryName
     var capital : [String]?
     var region : String?
     var subregion : String?
-    var population : Int?
+    var population : Int?      // not in the country file; filled in from the World Bank
     var area : Double?
-    var flags : Flags?
+    var landlocked : Bool?
+    var unMember : Bool?
+    var latlng : [Double]?
     var languages : [String : String]?
     var currencies : [String : Currency]?
+    
+    func flagURL(width: Int) -> URL? {
+        URL(string: "https://flagcdn.com/w\(width)/\(cca2.lowercased()).png")
+    }
 }
 
 struct CountryName : Codable {
@@ -26,11 +33,28 @@ struct CountryName : Codable {
     var official : String?
 }
 
-struct Flags : Codable {
-    var png : String?
-}
-
 struct Currency : Codable {
     var name : String?
     var symbol : String?
+}
+
+// MARK: - World Bank population response
+// The API returns a two-item array: [paging info, [rows]]
+
+struct PopulationResponse : Decodable {
+    let rows : [PopulationRow]
+    
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        _ = try container.decode(PopulationMeta.self)   // paging info, ignored
+        rows = try container.decode([PopulationRow].self)
+    }
+}
+
+struct PopulationMeta : Decodable {}
+
+struct PopulationRow : Decodable {
+    let countryiso3code : String?
+    let date : String
+    let value : Double?
 }
