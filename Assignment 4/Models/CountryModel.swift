@@ -38,7 +38,7 @@ struct Currency : Codable {
     var symbol : String?
 }
 
-// The API returns a two-item array: [paging info, [rows]]
+// the API returns a two-item array: [paging info, [rows]]
 
 struct PopulationResponse : Decodable {
     let rows : [PopulationRow]

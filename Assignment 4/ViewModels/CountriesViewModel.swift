@@ -24,7 +24,7 @@ class CountriesViewModel {
         
         self.isLoading = true
         
-        // Start the population request at the same time as the countries request
+        // start the population request at the same time as the countries request
         async let populationsTask = fetchPopulations()
         
         do {
@@ -36,7 +36,7 @@ class CountriesViewModel {
             
             var decoded = try JSONDecoder().decode([Country].self, from: data)
             
-            // Merge population in by 3-letter country code
+            // merge population in by 3-letter country code
             let populations = await populationsTask
             for index in decoded.indices {
                 decoded[index].population = populations[decoded[index].cca3]
@@ -54,8 +54,8 @@ class CountriesViewModel {
         }
     }
     
-    // Returns [country code : population]. If anything fails, returns an
-    // empty dictionary so the app still works without population.
+    // returns [country code : population]. If anything fails, returns an
+    // empty dictionary so the app still works without population
     func fetchPopulations() async -> [String : Int] {
         let urlString = "https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?format=json&per_page=2000&date=2022:2025"
         
@@ -65,7 +65,7 @@ class CountriesViewModel {
             let (data, _) = try await URLSession.shared.data(from: url)
             let response = try JSONDecoder().decode(PopulationResponse.self, from: data)
             
-            // Keep the most recent year that has a value for each country
+            // keep the most recent year that has a value for each country
             var latest : [String : (year: Int, value: Int)] = [:]
             
             for row in response.rows {
